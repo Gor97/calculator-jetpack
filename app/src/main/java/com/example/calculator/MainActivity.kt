@@ -22,22 +22,17 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    Greeting("Android")
+                    Calculator(modifier = Modifier)
                 }
             }
         }
     }
 }
 
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Calculator(modifier = Modifier)
-}
-
 @Preview(showBackground = true)
 @Composable
 fun GreetingPreview() {
     CalculatorTheme {
-        Greeting("Android")
+        Calculator(modifier = Modifier)
     }
 }
