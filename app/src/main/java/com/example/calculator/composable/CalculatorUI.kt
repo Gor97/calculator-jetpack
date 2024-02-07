@@ -21,16 +21,19 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.calculator.CalculatorButton
+import com.example.calculator.R
+import kotlin.math.sqrt
 
 @Composable
 fun Calculator(modifier: Modifier = Modifier) {
     val currentTextState = remember { mutableStateOf("") }
+    val resultTextState = remember { mutableStateOf("") }
     Column(modifier.fillMaxSize()) {
-        // Result part
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -39,7 +42,7 @@ fun Calculator(modifier: Modifier = Modifier) {
         ) {
             Column(modifier.fillMaxSize(), horizontalAlignment = Alignment.End) {
                 Text(
-                    text = "Result Text",
+                    text = resultTextState.value,
                     Modifier.padding(top = 50.dp, end = 20.dp),
                     fontSize = 25.sp
                 )
@@ -50,41 +53,106 @@ fun Calculator(modifier: Modifier = Modifier) {
                 )
             }
         }
-        // buttons part
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .fillMaxHeight()
                 .background(Color.Red)
         ) {
-            CalculatorButtons(modifier = Modifier, currentTextState)
+            CalculatorButtons(modifier = Modifier, currentTextState, resultTextState)
         }
     }
 }
 
 @Composable
-fun CalculatorButtons(modifier: Modifier = Modifier, state: MutableState<String>) {
+fun CalculatorButtons(
+    modifier: Modifier = Modifier, state: MutableState<String>, resultState: MutableState<String>
+) {
     val buttonsList = arrayListOf<CalculatorButton>()
-    buttonsList.add(CalculatorButton("AC") {     })
-    buttonsList.add(CalculatorButton("Root") {     })
-    buttonsList.add(CalculatorButton("%") { state.value += "%" })
-    buttonsList.add(CalculatorButton("/") { state.value += "/" })
+    val div = stringResource(R.string.div)
+    val sqrt = stringResource(R.string.sqrt)
+    buttonsList.add(CalculatorButton("AC") {
+        state.value = ""
+        resultState.value = ""
+    })
+    buttonsList.add(CalculatorButton(sqrt) {
+        if (state.value.isEmpty()) return@CalculatorButton
+        resultState.value = sqrt(state.value.toDouble()).toString()
+        state.value = ""
+    })
+    buttonsList.add(CalculatorButton("%") {
+        if (state.value.isEmpty()) return@CalculatorButton
+        if (resultState.value.contains("[+÷\\-X%]".toRegex())) {
+            calculate(state, resultState)
+            resultState.value += "+"
+        } else {
+            resultState.value = state.value + "%"
+            state.value = ""
+        }
+    })
+    buttonsList.add(CalculatorButton(div) {
+        if (state.value.isEmpty()) return@CalculatorButton
+        if (resultState.value.contains("[+÷\\-X%]".toRegex())) {
+            calculate(state, resultState)
+            resultState.value += "+"
+        } else {
+            resultState.value = state.value + div
+            state.value = ""
+        }
+    })
     buttonsList.add(CalculatorButton("7") { state.value += "7" })
     buttonsList.add(CalculatorButton("8") { state.value += "8" })
     buttonsList.add(CalculatorButton("9") { state.value += "9" })
-    buttonsList.add(CalculatorButton("X") { state.value += "X" })
+    buttonsList.add(CalculatorButton("X") {
+        if (state.value.isEmpty()) return@CalculatorButton
+        if (resultState.value.contains("[+÷\\-X%]".toRegex())) {
+            calculate(state, resultState)
+            resultState.value += "+"
+        } else {
+            resultState.value = state.value + "X"
+            state.value = ""
+        }
+    })
     buttonsList.add(CalculatorButton("4") { state.value += "4" })
     buttonsList.add(CalculatorButton("5") { state.value += "5" })
     buttonsList.add(CalculatorButton("6") { state.value += "6" })
-    buttonsList.add(CalculatorButton("-") { state.value += "-" })
+    buttonsList.add(CalculatorButton("-") {
+        if (state.value.isEmpty()) return@CalculatorButton
+        if (resultState.value.contains("[+÷\\-X%]".toRegex())) {
+            calculate(state, resultState)
+            resultState.value += "+"
+        } else {
+            resultState.value = state.value + "-"
+            state.value = ""
+        }
+    })
     buttonsList.add(CalculatorButton("1") { state.value += "1" })
     buttonsList.add(CalculatorButton("2") { state.value += "2" })
     buttonsList.add(CalculatorButton("3") { state.value += "3" })
-    buttonsList.add(CalculatorButton("+") { state.value += "+" })
+    buttonsList.add(CalculatorButton("+") {
+        if (state.value.isEmpty()) return@CalculatorButton
+        if (resultState.value.contains("[+÷\\-X%]".toRegex())) {
+            calculate(state, resultState)
+            resultState.value += "+"
+        } else {
+            resultState.value = state.value + "+"
+            state.value = ""
+        }
+    })
     buttonsList.add(CalculatorButton("0") { state.value += "0" })
-    buttonsList.add(CalculatorButton(".") { state.value += "." })  // NEED SPECIFIC LOGIC FOR THIS KIND OF ITEMS FOR 2nd TIME CLICK
-    buttonsList.add(CalculatorButton("D") {})
-    buttonsList.add(CalculatorButton("=") {})
+    buttonsList.add(CalculatorButton(".") {
+        if (state.value.isEmpty()) state.value += "0"
+        if (!state.value.contains(".")) {
+            state.value += "."
+        }
+    })
+    buttonsList.add(CalculatorButton("D") {
+        state.value = state.value.dropLast(1)
+    })
+    buttonsList.add(CalculatorButton("=") {
+        if (resultState.value.isEmpty() && state.value.isEmpty()) return@CalculatorButton
+        calculate(state, resultState)
+    })
     LazyVerticalGrid(
         columns = GridCells.Fixed(4),
         modifier = modifier
@@ -105,4 +173,23 @@ fun CalculatorButtons(modifier: Modifier = Modifier, state: MutableState<String>
             }
         }
     }
+
+
+}
+private fun calculate(state: MutableState<String>, resultState: MutableState<String>) {
+    if (state.value.isEmpty()) return
+    resultState.value += state.value
+    val parts = resultState.value.split("[+÷\\-X%]".toRegex())
+    val num1 = parts[0].toDouble()
+    val num2 = parts[1].toDouble()
+    val result = when {
+        resultState.value.contains('+') -> num1 + num2
+        resultState.value.contains('-') -> num1 - num2
+        resultState.value.contains('X') -> num1 * num2
+        resultState.value.contains('÷') -> num1 / num2
+        resultState.value.contains('%') -> num1 % num2
+        else -> throw IllegalArgumentException("Invalid operator")
+    }
+    resultState.value = result.toString()
+    state.value = ""
 }
