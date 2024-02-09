@@ -13,6 +13,7 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
@@ -21,6 +22,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import com.example.calculator.ui.theme.*
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -37,19 +39,21 @@ fun Calculator(modifier: Modifier = Modifier) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .fillMaxHeight(0.35f)
-                .background(Color.Green)
+                .fillMaxHeight(0.30f)
+                .background(LightGrey)
         ) {
             Column(modifier.fillMaxSize(), horizontalAlignment = Alignment.End) {
                 Text(
                     text = resultTextState.value,
                     Modifier.padding(top = 50.dp, end = 20.dp),
-                    fontSize = 25.sp
+                    fontSize = 35.sp,
+                    color = Color.White
                 )
                 Text(
                     text = currentTextState.value,
                     Modifier.padding(top = 30.dp, end = 20.dp),
-                    fontSize = 20.sp
+                    fontSize = 30.sp,
+                    color = Color.White
                 )
             }
         }
@@ -57,7 +61,7 @@ fun Calculator(modifier: Modifier = Modifier) {
             modifier = Modifier
                 .fillMaxWidth()
                 .fillMaxHeight()
-                .background(Color.Red)
+                .background(DarkGrey)
         ) {
             CalculatorButtons(modifier = Modifier, currentTextState, resultTextState)
         }
@@ -84,7 +88,7 @@ fun CalculatorButtons(
         if (state.value.isEmpty()) return@CalculatorButton
         if (resultState.value.contains("[+÷\\-X%]".toRegex())) {
             calculate(state, resultState)
-            resultState.value += "+"
+            resultState.value += "%"
         } else {
             resultState.value = state.value + "%"
             state.value = ""
@@ -94,7 +98,7 @@ fun CalculatorButtons(
         if (state.value.isEmpty()) return@CalculatorButton
         if (resultState.value.contains("[+÷\\-X%]".toRegex())) {
             calculate(state, resultState)
-            resultState.value += "+"
+            resultState.value += "÷"
         } else {
             resultState.value = state.value + div
             state.value = ""
@@ -107,7 +111,7 @@ fun CalculatorButtons(
         if (state.value.isEmpty()) return@CalculatorButton
         if (resultState.value.contains("[+÷\\-X%]".toRegex())) {
             calculate(state, resultState)
-            resultState.value += "+"
+            resultState.value += "X"
         } else {
             resultState.value = state.value + "X"
             state.value = ""
@@ -120,7 +124,7 @@ fun CalculatorButtons(
         if (state.value.isEmpty()) return@CalculatorButton
         if (resultState.value.contains("[+÷\\-X%]".toRegex())) {
             calculate(state, resultState)
-            resultState.value += "+"
+            resultState.value += "-"
         } else {
             resultState.value = state.value + "-"
             state.value = ""
@@ -157,13 +161,18 @@ fun CalculatorButtons(
         columns = GridCells.Fixed(4),
         modifier = modifier
             .fillMaxSize()
-            .padding(20.dp),
+            .padding(15.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalArrangement = Arrangement.SpaceBetween
     ) {
         itemsIndexed(items = buttonsList) { _, customItem ->
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Button(onClick = customItem.onClick, modifier = modifier.size(65.dp)) {
+                Button(
+                    onClick = customItem.onClick,
+                    modifier = modifier
+                        .size(80.dp),
+                    colors = ButtonDefaults.buttonColors(Grey)
+                    ) {
                     Text(
                         text = customItem.text,
                         fontSize = 25.sp,
@@ -176,8 +185,13 @@ fun CalculatorButtons(
 
 
 }
+
 private fun calculate(state: MutableState<String>, resultState: MutableState<String>) {
     if (state.value.isEmpty()) return
+    if (!resultState.value.contains("[+÷\\-X%]".toRegex())) {
+        resultState.value = state.value
+        return
+    }
     resultState.value += state.value
     val parts = resultState.value.split("[+÷\\-X%]".toRegex())
     val num1 = parts[0].toDouble()
