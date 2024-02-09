@@ -10,3 +10,6 @@ As for Jetpack Compose I have used components like
  4) Button
  5) LazyVerticalGrid
  6) remember MutableState
+
+
+![Alt text](/screenshots/Screenshot_20240208_183826.png?raw=true "Screenshot")
